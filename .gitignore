@@ -1,4 +1,9 @@
-.vscode
-.DS_Store
-output
+# APP
 vendor
+t9-linux-amd64
+
+# MAC
+.DS_Store
+
+# IDE
+.vscode

@@ -7,19 +7,23 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/RobertGrantEllis/t9/logger"
+	"github.com/RobertGrantEllis/t9/server/autocert"
 )
 
 type Configuration struct {
-	LogLevel string
+	LogLevel string `json:"log_level"`
 
-	Address string
+	Address string `json:"address"`
 
-	DictionaryFile string
+	DictionaryFile string `json:"dictionary_file"`
 
-	CertificateFile string
-	KeyFile         string
+	CertificateFile string `json:"certificate_file"`
+	KeyFile         string `json:"key_file"`
 
-	CacheSize int
+	UseAutocert bool                   `json:"use_autocert"`
+	Autocert    autocert.Configuration `json:"autocert"`
+
+	CacheSize int `json:"cache_size"`
 }
 
 func NewConfiguration() Configuration {
@@ -27,6 +31,7 @@ func NewConfiguration() Configuration {
 	return Configuration{
 		LogLevel:  logLevelDefault,
 		Address:   listenerAddressDefault,
+		Autocert:  autocert.NewConfiguration(),
 		CacheSize: cacheSizeDefault,
 	}
 }
@@ -58,6 +63,14 @@ func (configuration *Configuration) normalize() error {
 		return errors.New(`cannot designate certificate file but not key file`)
 	} else if len(configuration.CertificateFile) == 0 && len(configuration.KeyFile) > 0 {
 		return errors.New(`cannot designate key file but not certificate file`)
+	}
+
+	if configuration.UseAutocert {
+		configuration.Autocert.ServiceAddress = configuration.Address
+
+		if err := configuration.Autocert.Normalize(); err != nil {
+			return errors.Wrap(err, `invalid autocert configuration`)
+		}
 	}
 
 	return nil

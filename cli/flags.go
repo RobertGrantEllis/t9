@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -31,6 +32,17 @@ func getClientConfigurationFromArgs(args ...string) *client.Configuration {
 	return &configuration
 }
 
+type arrayFlag []string
+
+func (af *arrayFlag) String() string {
+	return strings.Join(*af, `,`)
+}
+
+func (af *arrayFlag) Set(value string) error {
+	*af = append(*af, value)
+	return nil
+}
+
 func getServerConfigurationFromArgs(args ...string) *server.Configuration {
 
 	if len(args) == 0 {
@@ -41,12 +53,20 @@ func getServerConfigurationFromArgs(args ...string) *server.Configuration {
 	fs := flag.NewFlagSet(args[0], flag.ContinueOnError)
 	configuration := server.NewConfiguration()
 
+	hostWhitelist := arrayFlag{}
+
 	fs.StringVar(&configuration.LogLevel, `log-level`, configuration.LogLevel, `debug|info|warn|error`)
 	fs.StringVar(&configuration.Address, `address`, configuration.Address, `listening address for t9 server`)
 	fs.StringVar(&configuration.DictionaryFile, `dictionary`, configuration.DictionaryFile, `dictionary (defaults to built-in English dictionary)`)
 	fs.IntVar(&configuration.CacheSize, `cache-size`, configuration.CacheSize, `cache size for t9 words`)
 	fs.StringVar(&configuration.CertificateFile, `certificate`, configuration.CertificateFile, `SSL/TLS certificate in PEM format`)
 	fs.StringVar(&configuration.KeyFile, `key`, configuration.KeyFile, `SSL/TLS private key in PEM format`)
+	fs.BoolVar(&configuration.UseAutocert, `use-autocert`, configuration.UseAutocert, `use autocert for TLS`)
+	fs.StringVar(&configuration.Autocert.HttpChallengeAddress, `autocert-http-challenge-address`, configuration.Autocert.HttpChallengeAddress, `listening address for autocert HTTP challenges`)
+	fs.StringVar(&configuration.Autocert.CacheDir, `autocert-cache-dir`, configuration.Autocert.CacheDir, `directory for storing cached certificates and keys`)
+	fs.Var(&hostWhitelist, `autocert-host-whitelist`, `hosts to be whitelisted for autocert`)
+
+	configuration.Autocert.HostWhitelist = hostWhitelist
 
 	addHelpAndParse(fs, args...)
 

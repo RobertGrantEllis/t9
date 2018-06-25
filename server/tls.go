@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/RobertGrantEllis/t9/bindata"
+	"github.com/RobertGrantEllis/t9/server/autocert"
 )
 
 func (s *server) getTlsConfig() (*tls.Config, error) {
@@ -24,7 +25,9 @@ func (s *server) getTlsConfig() (*tls.Config, error) {
 		return embeddedCertificate, nil
 	}
 
-	if len(s.configuration.CertificateFile) > 0 {
+	switch {
+	case len(s.configuration.CertificateFile) > 0:
+
 		// keyfile is also designated since the configuration normalization checks
 		designatedCertificate, err := getDesignatedCertificate(
 			s.configuration.CertificateFile,
@@ -44,6 +47,29 @@ func (s *server) getTlsConfig() (*tls.Config, error) {
 
 			// otherwise use the designated cert
 			return designatedCertificate, nil
+		}
+
+	case s.configuration.UseAutocert:
+
+		autocertManager, err := autocert.New(s.configuration.Autocert, s.logger)
+		if err != nil {
+			return nil, errors.Wrap(err, `could not instantiate autocert manager`)
+		}
+
+		// we are using autocert, so override the getCertificate function
+		getCertificate = func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+
+			if hello.ServerName == `t9` {
+				// this is our internal client SNI designation so use embedded cert
+				return embeddedCertificate, nil
+			}
+
+			cert, err := autocertManager.GetCertificate(hello)
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+
+			return cert, nil
 		}
 	}
 

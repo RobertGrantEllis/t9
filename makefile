@@ -5,6 +5,7 @@
 
 # Parameters
 BINARY_NAME=$(shell basename `pwd`)
+LINUX_BINARY_NAME=$(BINARY_NAME)-linux-amd64
 
 # Commands
 GOCMD=go
@@ -42,9 +43,8 @@ clean:
 	$(MAKE) -C mocks clean
 
 linux: generate vendor test
-	@mkdir -p output/
-	GOOS=linux GOARCH=amd64 go build -o "output/$(BINARY_NAME)" .
-	@echo "see binary output/$(BINARY_NAME)"
+	GOOS=linux GOARCH=amd64 go build -o "$(LINUX_BINARY_NAME)" .
+	@echo "see binary $(LINUX_BINARY_NAME)"
 
 docker: generate vendor test
 	$(DOCKERCOMPOSE) build

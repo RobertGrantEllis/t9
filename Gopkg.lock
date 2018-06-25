@@ -97,6 +97,15 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/crypto"
+  packages = [
+    "acme",
+    "acme/autocert"
+  ]
+  revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -177,9 +186,15 @@
   revision = "168a6198bcb0ef175f7dacec0b8691fc141dc9b8"
   version = "v1.13.0"
 
+[[projects]]
+  name = "gopkg.in/asaskevich/govalidator.v8"
+  packages = ["."]
+  revision = "521b25f4b05fd26bec69d9dedeb8f9c9a83939a8"
+  version = "v8"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b985a5ea4ffb00c648c295f9c715358e59a03c2366f091f1c7ac44945c4840f6"
+  inputs-digest = "c5a843a1bdeff1edcf7cc9c1bdddbfb146ff578a8a7b29eca3b36ed981b0dbad"
   solver-name = "gps-cdcl"
   solver-version = 1
